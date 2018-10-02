@@ -4,12 +4,42 @@ class Cliinterface
     welcome
   end
 
+###---- REMOVE LIST ----- called from user commands-----
+  def list_remove(user)
+    user_list = List.where(user_id: user.id)
+
+    if user_list.empty?
+      binding.pry
+      puts "You have no lists to remove"
+      return
+    else
+      p user_list.collect {|x| x.list_name}
+    end
+
+    puts "Which list do you want to remove"
+    input = gets.chomp.strip
+    list_to_remove = List.where(user_id: user.id, list_name: input)
+    if list_to_remove.any?
+      list_to_remove.destroy_all
+      puts "#{input} succesfully removed"
+    else
+      puts "You don't have a list named '#{input}'"
+      return list_remove(user)
+    end
+  end
+
 ### -- CREATE LIST ------ called from user commands--------
   def create_list(user)
     puts "What would you like to name your list?"
     input=gets.chomp.strip
-    List.create(list_name: input, user_id: user.id)
-    puts "You now have a new list!"
+    listquery=List.where(list_name: input, user_id: user.id)
+    # binding.pry
+    if listquery.empty?
+      List.create(list_name: input, user_id: user.id)
+      puts "You now have a new list!"
+    else
+      puts "That List has already been created!"
+    end
   end
 
 ###----SEARCH FUNCTION ------ called from user commands -------
@@ -19,6 +49,8 @@ def search(user)
   if title == "quit" ||title == "q"
     exit
   end
+
+  ####Subject to refactoring - based on api outputs
   movie=Movie.find_or_create_by(title: title)
   if movie == nil
     puts "Invalid input"
@@ -29,18 +61,18 @@ def search(user)
     if input == "Y"
       user_list = List.where(user_id: user.id)
       if user_list.any?
-      puts "Which list do you want to save it on?"
-      p user_list.collect {|x| x.list_name}
-      input=gets.chomp.strip
-      list = List.where(user_id: user.id, list_name: input)[0]
-      save_to_list = MoviesOnList.find_or_create_by(list_id: list.id, movie_id: movie.id)
-      puts "#{movie.title} is on your '#{list.list_name}' list"
+        puts "Which list do you want to save it on?"
+        p user_list.collect {|x| x.list_name}
+        input=gets.chomp.strip
+        list = List.where(user_id: user.id, list_name: input)[0]
+        save_to_list = MoviesOnList.find_or_create_by(list_id: list.id, movie_id: movie.id)
+        puts "#{movie.title} is on your '#{list.list_name}' list"
     else
       puts "You have no lists!"
     end
     elsif input == "N"
       puts "Returning to menu"
-    elsif input =="Q" || input == "QUIT"
+    elsif input == "Q" || input == "QUIT"
       exit
     else
       puts "Invalid input"
@@ -49,17 +81,38 @@ def search(user)
 end
 
 #### ---- REMOVE MOVIE FUNCTION ---- called from user commands ---
+def remove_movie_helper(title, user)
+  movie=Movie.where(title: title)[0]
+  if movie == nil
+    puts "Invalid movie"
+  else
+    puts "Which list do you want to remove it from?"
+    user_list = List.where(user_id: user.id)
+    p user_list.collect {|x| x.list_name}
+    input = gets.chomp.strip
+    list_info = List.where(user_id: user.id, list_name: input)[0]
+    if list_info == nil
+      puts "please enter correct list name"
+      return remove_movie_helper(title, user)
+    end
+    movie_to_destroy = MoviesOnList.where(list_id: list_info.id, movie_id: movie.id)
+    if movie_to_destroy == nil
+      puts "#{title} is not on your '#{input}' list"
+    else
+      movie_to_destroy.destroy_all
+      puts "#{title} was succesfully removed from your '#{input}' list"
+    end
+  end
+end
+
 def remove(user)
   puts "What movie would you like to remove"
   title=gets.chomp.strip
-  movie=Movie.where(title: title)[0]
-  puts "Which list do you want to remove it from ?"
-  user_list = List.where(user_id: user.id)
-  p user_list.collect {|x| x.list_name}
-  input = gets.chomp.strip
-  list_info = List.where(user_id: user.id, list_name: input)[0]
-  MoviesOnList.where(list_id: list_info.id, movie_id: movie.id).destroy_all
-  puts "#{title} was succesfully removed from your #{input} list"
+  if title == nil
+    puts "Please enter a movie title"
+    return remove(user)
+  end
+  remove_movie_helper(title, user)
 end
 
 
@@ -109,10 +162,7 @@ def cases(input, user)
     when "r" #good
       remove(user)
     when "d" #good
-      puts "Which list do you want to remove"
-      input = gets.chomp.strip
-      List.where(user_id: user.id, list_name: input).destroy_all
-      puts "#{input} succesfully removed"
+      list_remove(user)
     when "c" #good
       create_list(user)
     when "q" #good
@@ -151,11 +201,11 @@ def welcome
       User.where(name: input).destroy_all
       puts "Done"
     end
-elsif input == "S"
-puts  User.all.collect  {|x| x.name}
-puts "done"
-else
-  puts "Invalid input"
+  elsif input == "S"
+    puts  User.all.collect  {|x| x.name}
+    puts "done"
+  else
+    puts "Invalid input"
     #possible to do: delete all lists where list.user_id= user.id
   end
 end
