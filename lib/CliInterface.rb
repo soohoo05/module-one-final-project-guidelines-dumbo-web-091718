@@ -19,13 +19,17 @@ def search(user)
   puts "Would you like to save this movie to your list? put Y or N?"
   input=gets.chomp.upcase.strip
     if input == "Y"
-      puts "Which list do you want to save it on?"
       user_list = List.where(user_id: user.id)
+      if user_list.any?
+      puts "Which list do you want to save it on?"
       p user_list.collect {|x| x.list_name}
       input=gets.chomp.strip
       list = List.where(user_id: user.id, list_name: input)[0]
       save_to_list = MoviesOnList.find_or_create_by(list_id: list.id, movie_id: movie.id)
       puts "#{movie.title} is on your '#{list.list_name}' list"
+    else
+      puts "You have no lists!"
+    end
     elsif input == "N"
       puts "Returning to menu"
     elsif input =="Q" || input == "QUIT"
