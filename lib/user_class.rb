@@ -15,7 +15,7 @@ class User < ActiveRecord::Base
     # list_name.user_id = self.id
   end
 
-  def save(list_name, movie)
+  def save_movie(list_name, movie)
     list = self.lists
     new_save = MoviesOnList.create
     new_save.list_id = list.where(user_id: self.id, list_name: list_name)[0]
