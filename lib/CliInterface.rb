@@ -11,21 +11,18 @@ def search(user)
   movie=Movie.find_or_create_by(title: title)
   if movie == nil
     puts "Invalid input"
+    #api calls
   else
   puts "Would you like to save this movie to your list? put Y or N?"
   input=gets.chomp.upcase.strip
     if input == "Y"
       puts "Which list do you want to save it on?"
+      user_list = List.where(user_id: user.id)
+      p user_list.collect {|x| x.list_name}
       input=gets.chomp.strip
-      # user.save(input,movie)
       list = List.where(user_id: user.id, list_name: input)[0]
-      # binding.pry
-      save_to_list = MoviesOnList.create(list_id: list.id, movie_id: movie.id)
-      if save_to_list != nil
-          # binding.pry
-        puts "#{movie.title} has been saved to your '#{list.list_name}' list"
-
-      end
+      save_to_list = MoviesOnList.find_or_create_by(list_id: list.id, movie_id: movie.id)
+      puts "#{movie.title} is on your '#{list.list_name}' list"
     elsif input == "N"
       puts "Returning to menu"
     else
@@ -34,31 +31,54 @@ def search(user)
   end
 end
 
+#### ---- REMOVE MOVIE FUNCTION ---- called from user commands ---
+def remove(user)
+  puts "What movie would you like to remove"
+  title=gets.chomp.strip
+  movie=Movie.where(title: title)[0]
+  puts "Which list do you want to remove it from ?"
+  user_list = List.where(user_id: user.id)
+  p user_list.collect {|x| x.list_name}
+  input = gets.chomp.strip
+  list_info = List.where(user_id: user.id, list_name: input)[0]
+  MoviesOnList.where(list_id: list_info.id, movie_id: movie.id).destroy_all
+  puts "#{title} was succesfully removed from your #{input} list"
+end
+
+
+
+### ----- LIST METHOD ----- called from user commands -----
+def list(user)
+  user_list = List.where(user_id: user.id)
+  p user_list.collect {|x| x.list_name}
+  puts "Which list do you want to look at?"
+  input = gets.chomp.strip
+  list = List.where(list_name: input, user_id: user.id)[0]
+  mol = MoviesOnList.where(list_id: list.id)
+  list_arr = []
+  mol.each do |x|
+    mov_arr = Movie.all.select {|movie| movie.id == x.movie_id}
+    mov_arr.each {|y| list_arr << y.title}
+  end
+  p list_arr
+end
+
 #### -------- USER COMMANDS  ----------called from user control---
 #### - test 1 complete 1012am oct 2 --------------
 def cases(input, user)
   $quit = false
   case input
-    # binding.pry
-  when "l"
-      # binding.pry
-      user_list = List.where(user_id: user.id)
-      p user_list.collect {|x| x.list_name}
-      puts "Which list do you want to look at?"
-      input = gets.chomp.strip
-      list = List.where(list_name: input)[0]
-      MoviesOnList.where(id: list.id)
-    when "s"
+  when "l" #good
+    list(user)
+  when "s" #good
       search(user)
-    when "r"
-      puts "What movie would you like to remove"
-      title=gets.chomp.strip
-      movie=Movies.where(title: title)
-      List.where(user.id, movie.id).destroy
-    when "d"
+    when "r" #good
+      remove(user)
+    when "d" #good
       puts "Which list do you want to remove"
       input = gets.chomp.strip
       List.where(user_id: user.id, list_name: input).destroy_all
+      puts "#{input} succesfully removed"
     when "c" #good
       puts "What would you like to name your list?"
       input=gets.chomp.strip
