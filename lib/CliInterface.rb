@@ -8,6 +8,9 @@ class Cliinterface
 def search(user)
   puts "Enter movie name"
   title=gets.chomp.strip
+  if title == "quit" ||title == "q"
+    exit
+  end
   movie=Movie.find_or_create_by(title: title)
   if movie == nil
     puts "Invalid input"
@@ -25,6 +28,8 @@ def search(user)
       puts "#{movie.title} is on your '#{list.list_name}' list"
     elsif input == "N"
       puts "Returning to menu"
+    elsif input =="Q" || input == "QUIT"
+      exit
     else
       puts "Invalid input"
     end
@@ -97,19 +102,37 @@ def welcome
   puts "PLEASE ENTER YOUR USER NAME"
 
   name = gets.chomp.strip.capitalize
+  if name=="Q" || name == "Quit"
+    exit
+  end
   user = User.find_or_create_by(name: name)
 
 #### ----- ADMIN CONTROLS -----------------in welcome method----
   if user.name == "Admin"
-    puts "what user do you want to delete?"
-    input=gets.chomp.strip
+    puts "what do you want to do?"
+    puts "D = Delete User(s)"
+    puts "S = See User(s)"
+    input=gets.chomp.strip.capitalize
+    if input == "D"
+    puts "Who do you want to delete"
+    input=gets.chomp.strip.capitalize
     if input == "DESTROY"
       User.destroy_all
+    elsif input == "QUIT"
+      exit
     else
       User.where(name: input).destroy_all
+      puts "Done"
     end
+
+elsif input == "S"
+puts  User.all.collect  {|x| x.name}
+puts "done"
+else
+  puts "Invalid input"
     #possible to do: delete all lists where list.user_id= user.id
   end
+end
 
 #####---------- USER CONTROLS ----------------in welcome method----
   until $quit == true
