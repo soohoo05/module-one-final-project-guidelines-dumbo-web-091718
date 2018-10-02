@@ -55,6 +55,7 @@ end
 ### ----- LIST METHOD ----- called from user commands -----
 def list(user)
   user_list = List.where(user_id: user.id)
+  if user_list.any?
   p user_list.collect {|x| x.list_name}
   puts "Which list do you want to look at?"
   input = gets.chomp.strip
@@ -66,6 +67,9 @@ def list(user)
     mov_arr.each {|y| list_arr << y.title}
   end
   p list_arr
+else
+  puts "You have no lists!"
+end
 end
 
 #### -------- USER COMMANDS  ----------called from user control---
