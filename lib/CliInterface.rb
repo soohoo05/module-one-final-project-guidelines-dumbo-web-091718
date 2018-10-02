@@ -59,14 +59,19 @@ class Cliinterface
     puts "Which list do you want to look at?"
     input = gets.chomp.strip
     list = List.where(list_name: input, user_id: user.id)[0]
-    binding.pry
-    mol = MoviesOnList.where(list_id: list.id)
-    list_arr = []
-    mol.each do |x|
-      mov_arr = Movie.all.select {|movie| movie.id == x.movie_id}
-      mov_arr.each {|y| list_arr << y.title}
+    if list == nil
+      puts "No list found"
+      list(user)
+    else
+      mol = MoviesOnList.where(list_id: list.id)
+      list_arr = []
+      mol.each do |x|
+        mov_arr = Movie.all.select {|movie| movie.id == x.movie_id}
+        mov_arr.each {|y| list_arr << y.title}
+      end
+      p list_arr
     end
-    p list_arr
+
   end
 
 #### -------- USER COMMANDS  ----------called from user control---
