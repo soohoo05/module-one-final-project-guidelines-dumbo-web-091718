@@ -124,7 +124,6 @@ def welcome
       User.where(name: input).destroy_all
       puts "Done"
     end
-
 elsif input == "S"
 puts  User.all.collect  {|x| x.name}
 puts "done"
