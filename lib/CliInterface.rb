@@ -33,7 +33,6 @@ class Cliinterface
     puts "What would you like to name your list?"
     input=gets.chomp.strip
     listquery=List.where(list_name: input, user_id: user.id)
-    # binding.pry
     if listquery.empty?
       List.create(list_name: input, user_id: user.id)
       puts "You now have a new list!"
@@ -43,19 +42,46 @@ class Cliinterface
   end
 
 ###----SEARCH FUNCTION ------ called from user commands -------
+  def movie_search_helper(title)
+    call=ApiCall.new()
+    movie_search = call.movie_guide.search_for(title)
+    if movie_search.count > 1
+      movie_arr = movie_search.collect {|x| x["title"] }
+      movie_string = movie_arr.join(", ")
+      puts "which movie are you searching for? '#{movie_string}'"
+      input=gets.chomp.strip.capitalize
+      movie_search.find {|x| x["title"] == input}
+    end
+  end
+
+def movieHashShortner(movie)
+  shortened={}
+  shortened["title"]=movie["title"]
+  shortened["rating"]=movie["rating"]
+  shortened["apiId"]=movie["id"]
+  shortened["release_date"]=movie["release_date"]
+  shortened
+end
+
+
 def search(user)
   puts "Enter movie name"
   title=gets.chomp.strip
   if title == "quit" ||title == "q"
     exit
   end
+  movie_var = []
 
-  ####Subject to refactoring - based on api outputs
-  movie=Movie.find_or_create_by(title: title)
-  if movie == nil
-    puts "Invalid input"
-    #api calls
-  else
+  movie=Movie.where(title: title)[0]
+
+  if [movie].empty?
+    movie = movie_search_helper(title)
+    shortened=movieHashShortner(movie)
+    movie=Movie.create(shortened)
+    movie.save
+  end
+
+# binding.pry
   puts "Would you like to save this movie to your list? put Y or N?"
   input=gets.chomp.upcase.strip
     if input == "Y"
@@ -65,6 +91,7 @@ def search(user)
         p user_list.collect {|x| x.list_name}
         input=gets.chomp.strip
         list = List.where(user_id: user.id, list_name: input)[0]
+        binding.pry
         save_to_list = MoviesOnList.find_or_create_by(list_id: list.id, movie_id: movie.id)
         puts "#{movie.title} is on your '#{list.list_name}' list"
     else
@@ -77,7 +104,7 @@ def search(user)
     else
       puts "Invalid input"
     end
-  end
+
 end
 
 #### ---- REMOVE MOVIE FUNCTION ---- called from user commands ---
