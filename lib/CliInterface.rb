@@ -42,70 +42,99 @@ class Cliinterface
   end
 
 ###----SEARCH FUNCTION ------ called from user commands -------
-  def movie_search_helper(title)
+
+#<<<<<<<<< ---- FIND MOVIE WITH API CALL ---- called from in search -----
+  def api_movie_call(title)
     call=ApiCall.new()
     movie_search = call.movie_guide.search_for(title)
     if movie_search.count > 1
       movie_arr = movie_search.collect {|x| x["title"] }
       movie_string = movie_arr.join(", ")
       puts "which movie are you searching for? '#{movie_string}'"
-      input=gets.chomp.strip.capitalize
-      movie_search.find {|x| x["title"] == input}
+      input=gets.chomp.strip.downcase
+      movie_var =  movie_search.find {|x| x["title"].downcase == input}
+      shortened = movieHashShortner(movie_var)
+      movie = Movie.create(shortened)
+      movie
     end
   end
 
-def movieHashShortner(movie)
-  shortened={}
-  shortened["title"]=movie["title"]
-  shortened["rating"]=movie["rating"]
-  shortened["apiId"]=movie["id"]
-  shortened["release_date"]=movie["release_date"]
-  shortened
-end
+#<<<<<<<<< ----- RETURNS HASH WITH LOCAL ATTRIBUTES ----------------
+  def movieHashShortner(movie)
+    movie["alternate_titles"].each do |title|
+      AltTitles.create(api_id: movie["id"], title: title)
+    end
+    shortened={}
+    shortened["title"]=movie["title"]
+    shortened["rating"]=movie["rating"]
+    shortened["api_id"]=movie["id"]
+    shortened["release_date"]=movie["release_date"]
+    shortened
+  end
+
+#<<<<<<<-------  SEARCHES LOCAL DB FROM MOVIE -------called in side search-------
+  def alt_title_helper(search_results, title)
+    movie_names = search_results.collect {|movie| movie.title}.join(", ")
+    puts "Are you looking for any of these #{movie_names}? Please enter the name of the movie you are looking for, or enter no."
+    input = gets.chomp.downcase
+    if  input == "n" || input == "no"
+      movie = api_movie_call(title)
+    else
+      movie_select = AltTitles.where(title: input.downcase.titleize)
+      if movie_select.empty?
+        puts "Invalid input, please select again."
+        return alt_title_helper(search_results, title)
+      end
+      movie = Movie.where(api_id: movie_select[0].api_id)[0]
+    end #n or no
+  end
 
 
 def search(user)
   puts "Enter movie name"
   title=gets.chomp.strip
+
   if title == "quit" ||title == "q"
     exit
-  end
-  movie_var = []
+  end #q or quit
 
-  movie=Movie.where(title: title)[0]
+  search_results = AltTitles.where("title LIKE (?)", "%#{title}%")
 
-  if [movie].empty?
-    movie = movie_search_helper(title)
-    shortened=movieHashShortner(movie)
-    movie=Movie.create(shortened)
-    movie.save
+  if search_results.empty?
+    movie = api_movie_call(title)
+  else
+    movie = alt_title_helper(search_results, title)
   end
 
-# binding.pry
   puts "Would you like to save this movie to your list? put Y or N?"
   input=gets.chomp.upcase.strip
-    if input == "Y"
+  case input
+    when "Y"
       user_list = List.where(user_id: user.id)
       if user_list.any?
         puts "Which list do you want to save it on?"
         p user_list.collect {|x| x.list_name}
         input=gets.chomp.strip
         list = List.where(user_id: user.id, list_name: input)[0]
-        binding.pry
-        save_to_list = MoviesOnList.find_or_create_by(list_id: list.id, movie_id: movie.id)
-        puts "#{movie.title} is on your '#{list.list_name}' list"
-    else
-      puts "You have no lists!"
-    end
-    elsif input == "N"
+        save_to_list = MoviesOnList.where(list_id: list.id, api_id: movie.api_id)
+        if save_to_list != nil
+          puts "You have already saved #{movie.title} to your #{list.list_name} list."
+        else
+          save_to_list = MoviesOnList.create(list_id: list.id, api_id: movie.api_id)
+          puts "#{movie.title} is on your '#{list.list_name}' list"
+        end
+      else
+        puts "You have no lists!"
+      end #user list any
+    when "N"
       puts "Returning to menu"
-    elsif input == "Q" || input == "QUIT"
+    when "Q" , "QUIT"
       exit
     else
       puts "Invalid input"
-    end
+  end #case input
 
-end
+end #class
 
 #### ---- REMOVE MOVIE FUNCTION ---- called from user commands ---
 def remove_movie_helper(title, user)
@@ -122,7 +151,7 @@ def remove_movie_helper(title, user)
       puts "please enter correct list name"
       return remove_movie_helper(title, user)
     end
-    movie_to_destroy = MoviesOnList.where(list_id: list_info.id, movie_id: movie.id)
+    movie_to_destroy = MoviesOnList.where(list_id: list_info.id, api_id: movie.api_id)
     if movie_to_destroy == nil
       puts "#{title} is not on your '#{input}' list"
     else
@@ -165,7 +194,7 @@ def list(user)
   mol = MoviesOnList.where(list_id: list.id)
   list_arr = []
   mol.each do |x|
-    mov_arr = Movie.all.select {|movie| movie.id == x.movie_id}
+    mov_arr = Movie.all.select {|movie| movie.api_id == x.api_id}
     mov_arr.each {|y| list_arr << y.title}
   end
 
