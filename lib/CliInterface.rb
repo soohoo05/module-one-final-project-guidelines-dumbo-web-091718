@@ -4,12 +4,133 @@ class Cliinterface
     welcome
   end
 
+### ----- STREAMING SERVICE LIST HELPER METHODS ---- called from in streaming options list----
+  def sub_web_list(movie_name,sub_web, free_web, tv_web, buy_web, view_trailer)
+
+    if sub_web.empty? || sub_web == nil
+      puts "There are no subscription based options available at this time"
+      return streaming_options_list(movie_name,sub_web, free_web, tv_web, buy_web, view_trailer)
+    end
+    puts "#{movie_name} is available on the following subscription web sources:"
+    sub_web.each do |source|
+      puts ">>>>>>>>>>>>>>>>>>"
+      p source["display_name"] unless source["display_name"].nil?
+      p source["link"] unless source["link"].nil?
+      puts ">>>>>>>>>>>>>>>>>>"
+    end
+  end
+
+  def free_web_list(movie_name,sub_web, free_web, tv_web, buy_web, view_trailer)
+    if free_web.empty? || free_web == nil
+      puts "There are no free streaming options available at this time"
+      return streaming_options_list(sub_web, free_web, tv_web, buy_web, view_trailer)
+    end
+    puts "#{movie_name} is available on the following free web sources:"
+    free_web.each do |source|
+      puts ">>>>>>>>>>>>>>>>>>"
+      p source["display_name"] unless source["display_name"].nil?
+      p source["link"] unless source["link"].nil?
+      puts ">>>>>>>>>>>>>>>>>>"
+    end
+  end
+
+  def tv_web_list(movie_name,sub_web, free_web, tv_web, buy_web, view_trailer)
+    if tv_web.empty? || tv_web == nil
+      puts "There are no TV streaming options available at this time"
+      return streaming_options_list(movie_name,sub_web, free_web, tv_web, buy_web, view_trailer)
+    end
+    puts "#{movie_name} is available on the following TV web sources:"
+    tv_web.each do |source|
+      puts ">>>>>>>>>>>>>>>>>>"
+      p source["display_name"] unless source["display_name"].nil?
+      p source["link"] unless source["link"].nil?
+      puts ">>>>>>>>>>>>>>>>>>"
+    end
+  end
+
+  def buy_web_list(movie_name,sub_web, free_web, tv_web, buy_web, view_trailer)
+    if buy_web.empty? ||buy_web == nil
+      puts "There are no streaming options to purchase at this time"
+      return streaming_options_list(movie_name,sub_web, free_web, tv_web, buy_web, view_trailer)
+    end
+    puts "#{movie_name} is available for purchase from the following sources:"
+    buy_web.each do |source|
+      puts ">>>>>>>>>>>>>>>>>>"
+      p source["display_name"] unless source["display_name"].nil?
+      p source["link"] unless source["link"].nil?
+      p source["formats"][0]["price"] unless source["formats"].nil? || source["formats"].empty?
+      puts ">>>>>>>>>>>>>>>>>"
+    end
+  end
+
+  def view_trailer_list(movie_name,sub_web, free_web, tv_web, buy_web, view_trailer)
+     if view_trailer == nil
+       puts "There are no trailers available at this time"
+       return  streaming_options_list(movie_name,sub_web, free_web, tv_web, buy_web, view_trailer)
+     end
+       puts "View the trailer at #{view_trailer}"
+   end
+
+#### ---- RETURN LISTS OF STREAMING OPTIONS ---------------
+  def streaming_options_list(movie_name, sub_web = nil, free_web = nil, tv_web = nil, buy_web = nil, view_trailer = nil)
+    puts "Would you like to view avaiable streaming sources?"
+    puts "A = All available streaming services"
+    puts "S = Subscripton based services"
+    puts "F = Free web streaming services"
+    puts "T = TV web services"
+    puts "B = Buy from streaming services"
+    puts "V = View the trailer"
+    puts "Q = Quit"
+    input = gets.chomp.strip.downcase
+    case input
+      when "a"
+        sub_web_list(movie_name,sub_web, free_web, tv_web, buy_web, view_trailer) unless sub_web.empty? || sub_web == nil?
+        free_web_list(movie_name,sub_web, free_web, tv_web, buy_web, view_trailer) unless free_web.empty? || free_web == nil?
+        tv_web_list(movie_name,sub_web, free_web, tv_web, buy_web, view_trailer) unless tv_web.empty? || tv_web == nil?
+        buy_web_list(movie_name,sub_web, free_web, tv_web, buy_web, view_trailer) unless buy_web.empty? || buy_web == nil?
+        view_trailer_list(movie_name,sub_web, free_web, tv_web, buy_web, view_trailer) unless view_trailer == nil?
+      when "s"
+        sub_web_list(movie_name,sub_web, free_web, tv_web, buy_web, view_trailer)
+      when "f"
+        free_web_list(movie_name,sub_web, free_web, tv_web, buy_web, view_trailer)
+      when "t"
+        tv_web_list(movie_name,sub_web, free_web, tv_web, buy_web, view_trailer)
+      when "b"
+        buy_web_list(movie_name,sub_web, free_web, tv_web, buy_web, view_trailer)
+      when "v"
+        view_trailer_list(movie_name,sub_web, free_web, tv_web, buy_web, view_trailer)
+      when "q"
+        exit
+      else
+        puts "Invalid input"
+        streaming_options_list(movie_name,sub_web, free_web, tv_web, buy_web, view_trailer)
+      end
+    end
+
+###---- VIEW SOURCES ----------------
+
+def view_sources(user, movie = nil)
+  if movie == nil
+    movie = search(user)
+  end
+  call=ApiCall.new()
+  movie_search = call.movie_guide.fetch_movie(movie.title)
+  movie_name = movie_search.title
+  sub_web = movie_search.subscription_web_sources
+  free_web = movie_search.free_web_sources
+  tv_web = movie_search.tv_everywhere_web_sources
+  buy_web = movie_search.purchase_web_sources
+  view_trailer = movie_search.web_trailers[0]["link"] unless movie_search.web_trailers.empty?
+  streaming_options_list(movie_name, sub_web, free_web, tv_web, buy_web, view_trailer)
+end
+
+
 ###---- REMOVE LIST ----- called from user commands-----
   def list_remove(user)
     user_list = List.where(user_id: user.id)
 
     if user_list.empty?
-      binding.pry
+
       puts "You have no lists to remove"
       return
     else
@@ -47,49 +168,80 @@ class Cliinterface
   def api_movie_call(title)
     call=ApiCall.new()
     movie_search = call.movie_guide.search_for(title)
+
+    if movie_search.empty?
+      puts "No movie found by that name, please search again"
+      return search(user)
+    end
     if movie_search.count > 1
       movie_arr = movie_search.collect {|x| x["title"] }
       movie_string = movie_arr.join(", ")
       puts "which movie are you searching for? '#{movie_string}'"
       input=gets.chomp.strip.downcase
       movie_var =  movie_search.find {|x| x["title"].downcase == input}
-      shortened = movieHashShortner(movie_var)
-      movie = Movie.create(shortened)
+      if movie_var == nil
+        puts "Invalid input, please select again."
+        return api_movie_call(title)
+      end
+      fetch_movie = call.movie_guide.fetch_movie(movie_var["title"])
+      shortened = movieHashShortner(fetch_movie)
+      movie = Movie.find_or_create_by(shortened)
+      movie
+    else
+      fetch_movie = call.movie_guide.fetch_movie(movie_search[0]["title"])
+      shortened = movieHashShortner(fetch_movie)
+      movie = Movie.find_or_create_by(shortened)
       movie
     end
   end
 
 #<<<<<<<<< ----- RETURNS HASH WITH LOCAL ATTRIBUTES ----------------
   def movieHashShortner(movie)
-    movie["alternate_titles"].each do |title|
-      AltTitles.create(api_id: movie["id"], title: title)
+    movie.alternate_titles.each do |title|
+      AltTitles.create(api_id: movie.id, title: title)
     end
     shortened={}
-    shortened["title"]=movie["title"]
-    shortened["rating"]=movie["rating"]
-    shortened["api_id"]=movie["id"]
-    shortened["release_date"]=movie["release_date"]
+    shortened["title"]=movie.title
+    shortened["rating"]=movie.rating
+    shortened["api_id"]=movie.id
+    shortened["release_date"]=movie.release_date
+    binding.pry
+    shortened["director"] = movie.directors[0]["name"] unless movie.directors.empty?
     shortened
   end
 
 #<<<<<<<-------  SEARCHES LOCAL DB FROM MOVIE -------called in side search-------
-  def alt_title_helper(search_results, title)
+  def alt_title_helper(search_results, title, user)
+
     movie_names = search_results.collect {|movie| movie.title}.join(", ")
+    if movie_names.empty?
+      puts "No movie found by that name, please search again."
+      return search(user)
+    end
     puts "Are you looking for any of these #{movie_names}? Please enter the name of the movie you are looking for, or enter no."
     input = gets.chomp.downcase
     if  input == "n" || input == "no"
       movie = api_movie_call(title)
     else
       movie_select = AltTitles.where(title: input.downcase.titleize)
+
       if movie_select.empty?
         puts "Invalid input, please select again."
-        return alt_title_helper(search_results, title)
+        return alt_title_helper(search_results, title, user)
       end
       movie = Movie.where(api_id: movie_select[0].api_id)[0]
     end #n or no
   end
 
+  def display_movie_info(movie)
+      binding.pry
+     p "Title: #{movie["title"]}" unless movie["title"].nil?
+     p "Rating: #{movie["rating"]}"
+     p "Director: #{movie["director"]}" unless movie["director"].nil?
+     p "Release Year: #{movie["release_date"]}"
+  end
 
+###------------- SEARCH METHOD -------------
 def search(user)
   puts "Enter movie name"
   title=gets.chomp.strip
@@ -102,9 +254,17 @@ def search(user)
 
   if search_results.empty?
     movie = api_movie_call(title)
+    p "after api call"
+    binding.pry
   else
-    movie = alt_title_helper(search_results, title)
+    movie = alt_title_helper(search_results, title, user)
+    p "after alt title"
+
   end
+
+  display_movie_info(movie)
+
+  view_sources(user, movie)
 
   puts "Would you like to save this movie to your list? put Y or N?"
   input=gets.chomp.upcase.strip
@@ -207,7 +367,7 @@ def list(user)
 end
 
 #### -------- USER COMMANDS  ----------called from user control---
-#### - test 1 complete 1012am oct 2 --------------
+
 def cases(input, user)
   $quit = false
   case input
@@ -221,6 +381,8 @@ def cases(input, user)
       list_remove(user)
     when "c" #good
       create_list(user)
+    when "v"
+      view_sources(user)
     when "q" #good
       $quit = true
       return $quit
@@ -273,6 +435,7 @@ end
     puts "C = create a list "
     puts "L = return your list"
     puts "S = search for a movie"
+    puts "V = view movie details and streaming sources"
     puts "R = remove a movie from your list"
     puts "D = delete your list"
     puts "Q = quit"
