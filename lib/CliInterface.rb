@@ -2,9 +2,83 @@
 class Cliinterface
 
   def initialize
+@prompt=TTY::Prompt.new
+
+puts    "  ███╗   ███╗ ██████╗ ██╗   ██╗██╗███████╗     ██████╗ ██╗   ██╗██╗██████╗ ███████╗".red
+puts    "  ████╗ ████║██╔═══██╗██║   ██║██║██╔════╝    ██╔════╝ ██║   ██║██║██╔══██╗██╔════╝".yellow
+puts    "  ██╔████╔██║██║   ██║██║   ██║██║█████╗      ██║  ███╗██║   ██║██║██║  ██║█████╗".magenta
+puts    "  ██║╚██╔╝██║██║   ██║╚██╗ ██╔╝██║██╔══╝      ██║   ██║██║   ██║██║██║  ██║██╔══╝".green
+puts    "  ██║ ╚═╝ ██║╚██████╔╝ ╚████╔╝ ██║███████╗    ╚██████╔╝╚██████╔╝██║██████╔╝███████╗".blue
+puts    "  ╚═╝     ╚═╝ ╚═════╝   ╚═══╝  ╚═╝╚══════╝     ╚═════╝  ╚═════╝ ╚═╝╚═════╝ ╚══════╝".cyan
+
+  puts    "
+                            .       ...,**//#&&@@&&&&@@&&%#((/*.
+                                      .,,*(%&@@@@@@@&@@@@@&(*,
+                                       .,///#%&&@@@@@@@@@@&%#(*,
+    ,,.       /, ((                    .,****/#%#%%%&%%%(/*//,
+    ,..       *  ./.                  ,.     **     ..,.  .
+    ,,.       ,  ,*                                 .,
+    .,        .  **                                 .
+    .,     ,.,.  */               .                ,@@     ..*..
+    ..     *,*.  **                               .(&@#     ...
+    ..     //(,  **                              .(%@@&(.
+           ,,(,  **                             .,#%&@@%*.
+           .,(,  /,                    ...,,,,*,.*..,*/,*(,,...
+           .((,  /,                   ....,,,,,*.,,.. ........
+           *&/.  /,                    ......,(%(. ......*%,
+           *#*,  *,           .           ..,(((//(//,*&&%#(*
+           ././ .(,                       ..//,,.      .  /,*,
+            , &/.(,                       .,/*  .*/(#####, .,*
+            . *  /,.                       .*#/*,,.......,/#/,
+              .  ,,                         .,,,,,,,,,,....*,
+              .  *.                           ...,,*/(//*.
+                 ,,                            .,,***,,..,*.
+        .        ,,                              ........            %.
+                 ,,                                  ..        .     . */.#
+                 ((                                            .       ..,*&%&.
+                 ,.@.   *....                  ..,,,,,..       ..       ./,,,.(,(
+                 .     .&,#.                   ...,,,,..        .         %%%     ,
+                 .  .%@@,*@*               .   ....,....      .. .         /&%,
+                   %&&@%( ,,     (         ..   .......    ..... .  .       @&%(    .
+                  /%&&* .                ...  .......     ......  ..      .%%#%/
+                 */%%*  ,  ., .           ............    ......   *..     @/%(%#*
+                  .,(#( * *%&%%&@.         .............   . ......    . , ..&* ./(%*              "
+
+
     welcome
   end
 
+  ###---- EMAIL MAKER ----- adds email to user account on first instance-----------
+  def email_maker
+    puts "Please enter your email"
+    email = gets.chomp
+    if email.match(URI::MailTo::EMAIL_REGEXP).present?
+      @user.email = email
+      @user.save
+    else
+      puts "Email invalid"
+      return email_maker
+    end
+    user_controls
+  end
+
+
+  #####---------- USER CONTROLS ----------------in welcome method----
+  def user_controls
+    until $quit == true
+      puts "Hello #{@user.name}!"
+      choices={
+        "Create a list" => -> do cases('c') end,
+        "Return your list"=> -> do cases('l') end,
+        "Search for a movie" => -> do cases('s') end,
+        "View movie details and streaming sources"=> -> do cases('v') end,
+        "Remove a movie from your list"=> -> do cases('r') end,
+        "Delete your list"=> -> do cases('d') end,
+        "Quit" => -> do exit end
+      }
+        @prompt.select("What do you wanna do today?:",choices)
+    end
+  end
 
 ####----- SAVER METHOD --------- called from in search method
   def saver(movie)
@@ -57,82 +131,87 @@ class Cliinterface
   def sub_web_list(movie, sub_web, free_web, tv_web, buy_web, view_trailer)
 
     if sub_web.empty? || sub_web == nil
-      puts "There are no subscription based options available at this time"
+      puts "There are no subscription based options available at this time".red
       return streaming_options_list(movie, sub_web, free_web, tv_web, buy_web, view_trailer)
     end
-    puts "#{movie.title} is available on the following subscription web sources:"
+    puts "#{movie.title} is available on the following subscription web sources:".white
     sub_web.each do |source|
-      puts ">>>>>>>>>>>>>>>>>>"
+      puts ">>>>>>>>>>>>>>>>>>".blue
       p source["display_name"] unless source["display_name"].nil?
       p source["link"] unless source["link"].nil?
-      puts ".................."
+      puts "..................".blue
     end
   end
 
   def free_web_list(movie, sub_web, free_web, tv_web, buy_web, view_trailer)
     if free_web.empty? || free_web == nil
-      puts "There are no free streaming options available at this time"
+      puts "There are no free streaming options available at this time".red
       return streaming_options_list(movie, sub_web, free_web, tv_web, buy_web, view_trailer)
     end
-    puts "#{movie.title} is available on the following free web sources:"
+    puts "#{movie.title} is available on the following free web sources:".white
     free_web.each do |source|
-      puts ">>>>>>>>>>>>>>>>>>"
+      puts ">>>>>>>>>>>>>>>>>>".blue
       p source["display_name"] unless source["display_name"].nil?
       p source["link"] unless source["link"].nil?
-      puts ".................."
+      puts "..................".blue
     end
   end
 
   def tv_web_list(movie, sub_web, free_web, tv_web, buy_web, view_trailer)
     if tv_web.empty? || tv_web == nil
-      puts "There are no TV streaming options available at this time"
+      puts "There are no TV streaming options available at this time".red
       return streaming_options_list(movie, sub_web, free_web, tv_web, buy_web, view_trailer)
     end
-    puts "#{movie.title} is available on the following TV web sources:"
+    puts "#{movie.title} is available on the following TV web sources:".white
     tv_web.each do |source|
-      puts ">>>>>>>>>>>>>>>>>>"
+      puts ">>>>>>>>>>>>>>>>>>".blue
       p source["display_name"] unless source["display_name"].nil?
       p source["link"] unless source["link"].nil?
-      puts ".................."
+      puts "..................".blue
     end
   end
 
   def buy_web_list(movie, sub_web, free_web, tv_web, buy_web, view_trailer)
     if buy_web.empty? ||buy_web == nil
-      puts "There are no streaming options to purchase at this time"
+      puts "There are no streaming options to purchase at this time".red
       return streaming_options_list(movie, sub_web, free_web, tv_web, buy_web, view_trailer)
     end
-    puts "#{movie.title} is available for purchase from the following sources:"
+    puts "#{movie.title} is available for purchase from the following sources:".white
     buy_web.each do |source|
-      puts ">>>>>>>>>>>>>>>>>>"
+      puts ">>>>>>>>>>>>>>>>>>".blue
       p source["display_name"] unless source["display_name"].nil?
       p source["link"] unless source["link"].nil?
       p source["formats"][0]["price"] unless source["formats"].nil? || source["formats"].empty?
-      puts ".................."
+      puts "..................".blue
     end
   end
 
   def view_trailer_list(movie, sub_web, free_web, tv_web, buy_web, view_trailer)
      if view_trailer == nil
-       puts "There are no trailers available at this time"
+       puts "There are no trailers available at this time".red
        return  streaming_options_list(movie, sub_web, free_web, tv_web, buy_web, view_trailer)
      end
-       puts "View the trailer at #{view_trailer}"
+       puts "View the trailer at #{view_trailer.blue}".white
    end
 
 #### ---- RETURN LISTS OF STREAMING OPTIONS ---------------
   def streaming_options_list(movie, sub_web = nil, free_web = nil, tv_web = nil, buy_web = nil, view_trailer = nil)
-    puts "Would you like to view avaiable streaming sources?"
-    puts "A = All available streaming services"
-    puts "S = Subscripton based services"
-    puts "F = Free web streaming services"
-    puts "T = TV web services"
-    puts "B = Buy from streaming services"
-    puts "V = View the trailer"
-    puts "L = Save to your list"
-    puts "Q = Quit"
-    input = gets.chomp.strip.downcase
-    case input
+    choices={
+      "All available streaming services" => -> do output = ('a') end,
+      "Subscripton based services"=> -> do output = ('s') end,
+      "Free web streaming services" => -> do output = ('f') end,
+      "TV web services"=> -> do output = ('t') end,
+      "Buy from streaming services"=> -> do output = ('b') end,
+      "View the trailer"=> -> do output = ('v') end,
+      "Save to your list"=> -> do output = ('l') end,
+      "Email all info to your list" => -> do output = ('e') end,
+      "Quit" => -> do exit end
+    }
+    output = @prompt.select("Would you like to view avaiable streaming sources?", choices)
+
+    case output
+      when "e"
+
       when "a"
         sub_web_list(movie,sub_web, free_web, tv_web, buy_web, view_trailer) unless sub_web.empty? || sub_web == nil?
         free_web_list(movie,sub_web, free_web, tv_web, buy_web, view_trailer) unless free_web.empty? || free_web == nil?
@@ -150,8 +229,6 @@ class Cliinterface
         buy_web_list(movie,sub_web, free_web, tv_web, buy_web, view_trailer)
       when "v"
         view_trailer_list(movie,sub_web, free_web, tv_web, buy_web, view_trailer)
-      when "q"
-        exit
       when "l"
         saver(movie)
       else
@@ -232,10 +309,17 @@ end
     end
     if movie_search.count > 1
       movie_arr = movie_search.collect {|x| x["title"] }
-      movie_string = movie_arr.join(", ")
-      puts "which movie are you searching for? '#{movie_string}'"
-      input=gets.chomp.strip.downcase.titleize
-      movie_var =  movie_search.find {|x| x["title"] == input}
+      # movie_string = movie_arr.join(", ")
+      puts "which movie are you searching for?"
+      movie_arr.each do |title|
+        puts title.white
+      end
+
+      input=gets.chomp.strip.downcase
+      movie_arr_2 =  movie_search.select do |movie|
+        movie["title"].downcase == input
+      end
+      movie_var = movie_arr_2[0]
       if movie_var == nil
         puts "Invalid input, please select again."
         return api_movie_call(title)
@@ -264,25 +348,32 @@ end
     shortened["release_date"]=movie.release_date
     shortened["director"] = movie.directors[0]["name"] unless movie.directors.empty?
     shortened
-
   end
 
 #<<<<<<<-------  SEARCHES LOCAL DB FROM MOVIE -------called in side search-------
   def alt_title_helper(search_results, title)
+    movie_names = search_results.collect {|movie| movie.title}
 
-    movie_names = search_results.collect {|movie| movie.title}.join(", ")
     if movie_names.empty?
-      puts "No movie found by that name, please search again."
+      puts "No movies found by that name, please search again."
       return search
     end
-    puts "Are you looking for any of these #{movie_names}? Please enter the name of the movie you are looking for, or enter no."
+
+    movie_names.each do |title|
+     puts title.white
+    end
+
+    puts "Please enter the name of the movie you are looking for, or enter no."
     input = gets.chomp.downcase
     if  input == "n" || input == "no"
       movie = api_movie_call(title)
     else
-      movie_select = AltTitles.where(title: input.downcase.titleize)
-      movie_all = Movie.where(title: input.downcase.titleize)
-
+      movie_select =  AltTitles.all.select do |movie|
+        movie.title.downcase == input
+      end
+      movie_all = Movie.all.select do |movie|
+        movie.title.downcase == input
+      end
       if movie_select.empty? && movie_all.empty?
         puts "Invalid input, please select again."
         return alt_title_helper(search_results, title)
@@ -294,11 +385,13 @@ end
     end
   end
 
+### ------ DISPLAY MOVIE INFO ----- puts movie details to console -------
+
   def display_movie_info(movie)
-     p "Title: #{movie["title"]}" unless movie["title"].nil?
-     p "Rating: #{movie["rating"]}"unless movie["rating"].nil?
-     p "Director: #{movie["director"]}" unless movie["director"].nil?
-     p "Release Year: #{movie["release_date"]}" unless movie["release_date"].nil?
+     puts ("Title: #{movie["title"]}").white unless movie["title"].nil?
+     puts ("Rating: #{movie["rating"]}").white unless movie["rating"].nil?
+     puts ("Director: #{movie["director"]}").white unless movie["director"].nil?
+     puts ("Release Year: #{movie["release_date"]}").white unless movie["release_date"].nil?
   end
 
 ###------------- SEARCH METHOD -------------
@@ -374,14 +467,17 @@ end
     end
 
     p user_list.collect {|x| x.list_name}
-    puts "Which list do you want to look at?"
+    puts "Which list do you want to look at? Type M to return to the main menu."
     input = gets.chomp.strip
+    if input == "m" || input == "M"
+      return user_controls
+    end
     list_var = List.where(list_name: input, user_id: @user.id)[0]
+
     if list_var == nil
       puts "No list found by that name"
       list
     end
-
 
     mol = MoviesOnList.where(list_id: list_var.id)
     list_arr = []
@@ -391,10 +487,13 @@ end
     end
 
     if list_arr.empty?
-      puts " You have no movies saved to this list"
+      puts " You have no movies saved to this list. Type M to return to the main menu."
+      return list
     else
       p list_arr
     end
+
+
 
   end
 
@@ -424,66 +523,79 @@ def cases(input)
 end #cases method
 
 ##### ------------WELCOME METHOD  ---------------
-def welcome
-  puts "WELCOME TO YOUR PERSONAL MOVIE GUIDE"
-  puts "PLEASE ENTER YOUR USER NAME"
-
-  name = gets.chomp.strip.capitalize
-
-  if name=="Q" || name == "Quit"
-    return exit
-  end
+  def welcome
+    puts "WELCOME TO YOUR PERSONAL MOVIE GUIDE"
+    puts "PLEASE ENTER YOUR USER NAME"
+    name = gets.chomp.strip.capitalize
 
 
-  if input_checker(name)
-    puts "Not a valid name"
-    return welcome
-  end
-
-  @user = User.find_or_create_by(name: name)
-
-#### ----- ADMIN CONTROLS -----------------in welcome method----
-  if @user.name == "Admin"
-    puts "what do you want to do?"
-    puts "D = Delete User(s)"
-    puts "S = See User(s)"
-    input=gets.chomp.strip.capitalize
-    if input == "D"
-    puts "Who do you want to delete"
-    input=gets.chomp.strip.capitalize
-    if input == "DESTROY"
-      User.destroy_all
-    elsif input == "QUIT"
-      exit
-    else
-      User.where(name: input).destroy_all
-      puts "Done"
+    if name=="Q" || name == "Quit"
+      return exit
     end
-  elsif input == "S"
-    puts  User.all.collect  {|x| x.name}
-    puts "done"
-  else
-    puts "Invalid input"
-    #possible to do: delete all lists where list.user_id= user.id
+
+    if input_checker(name)
+      puts "Not a valid name"
+      return welcome
+    end
+
+    @user = User.where(name: name)[0]
+    password=""
+    if @user != nil
+      password = @prompt.mask("PLEASE ENTER YOUR PASSWORD")
+      password.split(" ").each do |char|
+        if char == " "
+          puts "Not a valid password"
+          return welcome
+        end
+      end
+    end
+
+    if @user == nil
+      password = @prompt.mask("PLEASE MAKE YOUR PASSWORD")
+      password.split(" ").each do |char|
+        if char == " "
+          puts "Not a valid password"
+          return welcome
+        end
+        @user = User.create(name: name, password: password)
+      end
+      email_maker
+    end
+binding.pry
+    if @user.password == password
+      user_controls
+    else
+      puts "Invalid password"
+      return welcome
+    end
+
+  #### ----- ADMIN CONTROLS -----------------in welcome method----
+    if @user.name == "Admin"
+      puts "what do you want to do?"
+      puts "D = Delete User(s)"
+      puts "S = See User(s)"
+      input=gets.chomp.strip.capitalize
+      if input == "D"
+      puts "Who do you want to delete"
+      input=gets.chomp.strip.capitalize
+      if input == "DESTROY"
+        User.destroy_all
+      elsif input == "QUIT"
+        exit
+      else
+        User.where(name: input).destroy_all
+        puts "Done"
+      end
+    elsif input == "S"
+      puts  User.all.collect  {|x| x.name}
+      puts "done"
+    else
+      puts "Invalid input"
+      #possible to do: delete all lists where list.user_id= user.id
+    end
+    end
+
+    user_controls
   end
-end
 
-#####---------- USER CONTROLS ----------------in welcome method----
-  until $quit == true
-    puts "Hello #{@user.name}!"
-    puts "What do you wanna do today?: "
-    puts "C = create a list "
-    puts "L = return your list"
-    puts "S = search for a movie"
-    puts "V = view movie details and streaming sources"
-    puts "R = remove a movie from your list"
-    puts "D = delete your list"
-    puts "Q = quit"
-
-    input = gets.chomp.strip.downcase
-    cases(input)
-    # system "clear"
-
-  end #while
-end
 end #class
