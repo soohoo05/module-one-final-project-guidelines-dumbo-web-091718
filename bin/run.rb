@@ -6,3 +6,4 @@ require_relative '../config/environment'
 require 'pry'
 
 cli=Cliinterface.new()
+ActiveRecord::Base.logger = nil
