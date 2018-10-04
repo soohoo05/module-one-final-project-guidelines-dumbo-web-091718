@@ -2,6 +2,7 @@
 class Cliinterface
 
   def initialize
+  @f = File.new("email.txt", "w")
 @prompt=TTY::Prompt.new
 
 puts    "  ███╗   ███╗ ██████╗ ██╗   ██╗██╗███████╗     ██████╗ ██╗   ██╗██╗██████╗ ███████╗".red
@@ -46,6 +47,18 @@ puts    "  ╚═╝     ╚═╝ ╚═════╝   ╚═══╝  ╚�
 
 
     welcome
+  end
+
+  ###-----SEND EMAIL ---------------------------------------------
+  def email_sender
+    user_email = @user.email
+    mail = Mail.new do
+      from 'movie.guide.for.you@gmail.com'
+      to "'#{user_email}'"
+      subject "Your movie search results from Movie Guide"
+      body File.read('email.txt')
+    end
+    mail.deliver!
   end
 
   ###---- EMAIL MAKER ----- adds email to user account on first instance-----------
@@ -129,60 +142,118 @@ puts    "  ╚═╝     ╚═╝ ╚═════╝   ╚═══╝  ╚�
 
 ### ----- STREAMING SERVICE LIST HELPER METHODS ---- called from in streaming options list----
   def sub_web_list(movie, sub_web, free_web, tv_web, buy_web, view_trailer)
-
     if sub_web.empty? || sub_web == nil
-      puts "There are no subscription based options available at this time".red
+      var_string = "There are no subscription based options available at this time"
+
+      puts var_string.red
       return streaming_options_list(movie, sub_web, free_web, tv_web, buy_web, view_trailer)
     end
-    puts "#{movie.title} is available on the following subscription web sources:".white
+    var_string =  "#{movie.title} is available on the following subscription web sources:"
+    @f.write(var_string)
+    @f.write("\n")
+    puts var_string.white
     sub_web.each do |source|
-      puts ">>>>>>>>>>>>>>>>>>".blue
-      p source["display_name"] unless source["display_name"].nil?
-      p source["link"] unless source["link"].nil?
-      puts "..................".blue
+      arrow_var = ">>>>>>>>>>>>>>>>>>"
+      @f.write(arrow_var)
+      @f.write("\n")
+      puts arrow_var.blue
+      var_1 = source["display_name"] unless source["display_name"].nil?
+      @f.write(var_1)
+      @f.write("\n")
+      puts var_1
+      var_2 = source["link"] unless source["link"].nil?
+      @f.write(var_2)
+      @f.write("\n")
+      puts var_2
+      dot_var = ".................."
+      @f.write(dot_var)
+      @f.write("\n")
+      puts dot_var.white
     end
   end
 
   def free_web_list(movie, sub_web, free_web, tv_web, buy_web, view_trailer)
     if free_web.empty? || free_web == nil
-      puts "There are no free streaming options available at this time".red
+      var_string = "There are no free streaming options available at this time"
+      puts var_string.red
       return streaming_options_list(movie, sub_web, free_web, tv_web, buy_web, view_trailer)
     end
     puts "#{movie.title} is available on the following free web sources:".white
     free_web.each do |source|
-      puts ">>>>>>>>>>>>>>>>>>".blue
-      p source["display_name"] unless source["display_name"].nil?
-      p source["link"] unless source["link"].nil?
-      puts "..................".blue
+      arrow_var = ">>>>>>>>>>>>>>>>>>"
+      p arrow_var.blue
+      @f.write(arrow_var)
+      @f.write("\n")
+      var_1=source["display_name"] unless source["display_name"].nil?
+      @f.write(var_1)
+      @f.write("\n")
+      p var_1
+      var_2 =source["link"] unless source["link"].nil?
+      @f.write(var_2)
+      @f.write("\n")
+      puts var_2
+      dot_var = ".................."
+      @f.write(dot_var)
+      @f.write("\n")
+      puts dot_var.white
     end
   end
 
   def tv_web_list(movie, sub_web, free_web, tv_web, buy_web, view_trailer)
     if tv_web.empty? || tv_web == nil
-      puts "There are no TV streaming options available at this time".red
+      var_string = "There are no TV streaming options available at this time".red
+      puts var_string.red
       return streaming_options_list(movie, sub_web, free_web, tv_web, buy_web, view_trailer)
     end
     puts "#{movie.title} is available on the following TV web sources:".white
     tv_web.each do |source|
-      puts ">>>>>>>>>>>>>>>>>>".blue
-      p source["display_name"] unless source["display_name"].nil?
-      p source["link"] unless source["link"].nil?
-      puts "..................".blue
+      arrow_var = ">>>>>>>>>>>>>>>>>>"
+      p arrow_var
+      @f.write(arrow_var)
+      @f.write("\n")
+      var_1= source["display_name"] unless source["display_name"].nil?
+      @f.write(var_1)
+      @f.write("\n")
+      p var_1
+      var_2 = source["link"] unless source["link"].nil?
+      @f.write(var_2)
+      @f.write("\n")
+      puts var_2
+      dot_var = ".................."
+      @f.write(dot_var)
+      @f.write("\n")
+      puts dot_var.white
     end
   end
 
   def buy_web_list(movie, sub_web, free_web, tv_web, buy_web, view_trailer)
     if buy_web.empty? ||buy_web == nil
-      puts "There are no streaming options to purchase at this time".red
+      var_string = "There are no streaming options to purchase at this time".red
+      puts var_string
       return streaming_options_list(movie, sub_web, free_web, tv_web, buy_web, view_trailer)
     end
     puts "#{movie.title} is available for purchase from the following sources:".white
     buy_web.each do |source|
-      puts ">>>>>>>>>>>>>>>>>>".blue
-      p source["display_name"] unless source["display_name"].nil?
-      p source["link"] unless source["link"].nil?
-      p source["formats"][0]["price"] unless source["formats"].nil? || source["formats"].empty?
-      puts "..................".blue
+      arrow_var=">>>>>>>>>>>>>>>>>>"
+      puts (arrow_var).blue
+      @f.write(arrow_var)
+      @f.write("\n")
+      var_1 = source["display_name"] unless source["display_name"].nil?
+      @f.write(var_1)
+      @f.write("\n")
+      p var_1
+      var_2 = source["link"] unless source["link"].nil?
+      @f.write(var_2)
+      @f.write("\n")
+      puts var_2
+      var_3 = source["formats"][0]["price"] unless source["formats"].nil? || source["formats"].empty?
+      @f.write(var_3)
+      @f.write("\n")
+      puts var_3
+      dot_var = ".................."
+      @f.write(dot_var)
+      @f.write("\n")
+      puts dot_var.white
     end
   end
 
@@ -191,7 +262,10 @@ puts    "  ╚═╝     ╚═╝ ╚═════╝   ╚═══╝  ╚�
        puts "There are no trailers available at this time".red
        return  streaming_options_list(movie, sub_web, free_web, tv_web, buy_web, view_trailer)
      end
-       puts "View the trailer at #{view_trailer.blue}".white
+       var_1 = "View the trailer at #{view_trailer}"
+       @f.write(var_1)
+       @f.write("\n")
+       p var_1.white
    end
 
 #### ---- RETURN LISTS OF STREAMING OPTIONS ---------------
@@ -207,11 +281,18 @@ puts    "  ╚═╝     ╚═╝ ╚═════╝   ╚═══╝  ╚�
       "Email all info to your list" => -> do output = ('e') end,
       "Quit" => -> do exit end
     }
-    output = @prompt.select("Would you like to view avaiable streaming sources?", choices)
+    output = @prompt.select("Would you like to view available streaming sources?", choices)
 
     case output
-      when "e"
-
+    when "e"
+        # sub_web_list(movie,sub_web, free_web, tv_web, buy_web, view_trailer)
+        sub_web_list(movie,sub_web, free_web, tv_web, buy_web, view_trailer) unless sub_web.empty? || sub_web == nil?
+        free_web_list(movie,sub_web, free_web, tv_web, buy_web, view_trailer) unless free_web.empty? || free_web == nil?
+        tv_web_list(movie,sub_web, free_web, tv_web, buy_web, view_trailer) unless tv_web.empty? || tv_web == nil?
+        buy_web_list(movie,sub_web, free_web, tv_web, buy_web, view_trailer) unless buy_web.empty? || buy_web == nil?
+        view_trailer_list(movie,sub_web, free_web, tv_web, buy_web, view_trailer) unless view_trailer == nil?
+        @f.close
+        email_sender
       when "a"
         sub_web_list(movie,sub_web, free_web, tv_web, buy_web, view_trailer) unless sub_web.empty? || sub_web == nil?
         free_web_list(movie,sub_web, free_web, tv_web, buy_web, view_trailer) unless free_web.empty? || free_web == nil?
@@ -283,7 +364,7 @@ end
   def create_list
     puts "What would you like to name your list?"
     input=gets.chomp.strip
-    if input == nil
+    if input == nil || input.empty?
       puts "Invalid list name"
       create_list
     end
@@ -398,6 +479,11 @@ end
 def search
   puts "Enter movie name"
   title=gets.chomp.strip
+
+  if title.empty? || title.nil?
+    puts "Invalid input"
+    return search
+  end
 
   if title == "quit" ||title == "q"
     exit
@@ -561,7 +647,6 @@ end #cases method
       end
       email_maker
     end
-binding.pry
     if @user.password == password
       user_controls
     else
