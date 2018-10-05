@@ -14,7 +14,9 @@ edit their lists, edit the movies on their list, and view links to stream from f
 ​
 Movie Guide returns the title, director, release date, rating and description of the chosen movie.
 
-The streaming sources information and the general movie information are saved to a text file on each iteration with our goal being to email that information to the user. We ran into complications with installing an email server locally, and at this date email functionality has not been achieved.
+The streaming sources information and the general movie information are saved to a text file on each iteration with our goal being to email that information to the user.
+
+The email function works by instantiating a new text file on each iteration and and using a command line execution to send the user an email with that iteration of the text file from their own local computer. This was tested on a mac and may not have full functionality on a pc. 
 ​
 Important notes:
 ​

@@ -51,31 +51,15 @@ puts    "  ╚═╝     ╚═╝ ╚═════╝   ╚═══╝  ╚�
 
   ###-----SEND EMAIL ---------------------------------------------
   def email_sender
-    Net::SMTP.start('movie.guide.for.you@gmail.com')
     user_email = @user.email
     user_name = @user.name
     body = File.read('email.txt')
-    message = <<MESSAGE_END
-    From: Movie Guide <movie.guide.for.you@gmail.com>
-    To: '#{user_name}' <'#{@user.email}'>
-    Subject: Your Movie Guide Movie Streaming Selections
-
+    subject = "Your Movie Guide Selection"
+    mail = `mail -s "#{subject}" "#{user_email}"<<-EOM
     '#{body}'
-MESSAGE_END
+  EOM`
 
-  Net::SMTP.start('localhost') do |smtp|
-    smtp.send_message message, 'movie.guide.for.you@gmail.com', "'#{@user.email}'"
-  end
-  #   binding.pry
-  #   gmail = Gmail.connect("movie.guide.for.you@gmail.com", "MovieGuide51!")
-  #   user_email = @user.email
-  #   email = gmail.compose do
-  #     to "'#{user_email}'"
-  #     subject "Your movie search results from Movie Guide"
-  #     body File.read('email.txt')
-  #   end
-  # email.deliver!
-  # gmail.logout
+    return system(mail)
   end
 
   ###---- EMAIL MAKER ----- adds email to user account on first instance-----------
@@ -279,10 +263,10 @@ MESSAGE_END
        puts "There are no trailers available at this time".red
        return  streaming_options_list(movie, sub_web, free_web, tv_web, buy_web, view_trailer)
      end
-       var_1 = "View the trailer at #{view_trailer}"
+       var_1 = "View the trailer at: #{view_trailer}"
        @f.write(var_1)
        @f.write("\n")
-       p var_1.white
+       puts var_1.white
    end
 
 #### ---- RETURN LISTS OF STREAMING OPTIONS ---------------
@@ -309,9 +293,9 @@ MESSAGE_END
         buy_web_list(movie,sub_web, free_web, tv_web, buy_web, view_trailer) unless buy_web.empty? || buy_web == nil?
         view_trailer_list(movie,sub_web, free_web, tv_web, buy_web, view_trailer) unless view_trailer == nil?
         @f.close
-        puts "At this time our email server is currently not configured, a text file has been created."
-        user_controls
-        # email_sender
+        # puts "At this time our email server is currently not configured, a text file has been created."
+        # user_controls
+        email_sender
       when "a"
         sub_web_list(movie,sub_web, free_web, tv_web, buy_web, view_trailer) unless sub_web.empty? || sub_web == nil?
         free_web_list(movie,sub_web, free_web, tv_web, buy_web, view_trailer) unless free_web.empty? || free_web == nil?
@@ -464,7 +448,7 @@ end
      puts title.white
     end
 
-    puts "Please enter the name of the movie you are looking for, or enter no."
+    puts "Please enter the name of the movie you are looking for or enter no."
     input = gets.chomp.downcase
     if  input == "n" || input == "no"
       movie = api_movie_call(title)
@@ -479,10 +463,16 @@ end
         puts "Invalid input, please select again."
         return alt_title_helper(search_results, title)
       elsif movie_select.empty?
-        movie = Movie.where(api_id: movie_all[0].api_id)[0]
+        movie = Movie.where(api_id: movie_all[0].api_id)
       else
-        movie = Movie.where(api_id: movie_select[0].api_id)[0]
+        movie = Movie.where(api_id: movie_select[0].api_id)
       end #n or no
+
+      if movie == nil? || movie.empty?
+        movie = api_movie_call(title)
+      end
+
+      return movie
     end
   end
 
@@ -493,23 +483,22 @@ end
      @f.write(var_1)
      @f.write("\n")
      puts var_1.white
-     var_2 = ("Rating: #{movie["rating"]}").white unless movie["rating"].nil?
+     var_2 = ("Rating: #{movie["rating"]}") unless movie["rating"].nil?
      @f.write(var_2)
      @f.write("\n")
      puts var_2.white
-     var_3 = ("Director: #{movie["director"]}").white unless movie["director"].nil?
+     var_3 = ("Director: #{movie["director"]}") unless movie["director"].nil?
      @f.write(var_3)
      @f.write("\n")
      puts var_3.white
-     var_4 = ("Release Year: #{movie["release_date"]}").white unless movie["release_date"].nil?
+     var_4 = ("Release Year: #{movie["release_date"]}") unless movie["release_date"].nil?
      @f.write(var_4)
      @f.write("\n")
      puts var_4.white
-     var_5 = ("Description: #{movie["description"]}").white unless movie["description"].nil?
+     var_5 = ("Description: #{movie["description"]}") unless movie["description"].nil?
      @f.write(var_5)
      @f.write("\n")
-     puts var_5.white
-
+     puts var_5.white unless movie["description"].nil?
   end
 
 ###------------- SEARCH METHOD -------------
