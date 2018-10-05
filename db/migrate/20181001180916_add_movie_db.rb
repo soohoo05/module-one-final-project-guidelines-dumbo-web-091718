@@ -6,6 +6,7 @@ class AddMovieDb < ActiveRecord::Migration[5.0]
       t.string :rating
       t.string :director
       t.integer :release_date
+      t.text :description
     end
   end
 end

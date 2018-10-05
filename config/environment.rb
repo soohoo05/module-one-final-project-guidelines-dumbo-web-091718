@@ -1,6 +1,10 @@
 require 'bundler'
 require "colorize"
 require 'uri'
+require 'gmail'
+require 'net/smtp'
+# require 'gmail_xoauth'
+
 
 Bundler.require
 ActiveRecord::Base.logger = nil
