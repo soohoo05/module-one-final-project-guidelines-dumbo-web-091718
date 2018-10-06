@@ -5,3 +5,7 @@ gem "sinatra-activerecord"
 gem "sqlite3"
 gem "pry"
 gem "require_all"
+gem 'GuideboxWrapper'
+gem 'colorize'
+gem 'tty-prompt'
+gem 'mail', '~> 2.7'
